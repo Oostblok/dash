@@ -226,27 +226,20 @@ void Arbiter::increase_volume(uint8_t val)
     this->set_volume(std::min(std::max(0, this->system().volume + val), 100));
 }
 
-void Arbiter::send_media_command(const std::string& command)
+void Arbiter::send_media_command(const QString& command)
 {
     if (this->android_auto().connected) {
-        aasdk::proto::enums::ButtonCode::Enum buttonCode;
+        static const std::unordered_map<std::string, aasdk::proto::enums::ButtonCode::Enum> commandMap = {
+            {"previous_track", aasdk::proto::enums::ButtonCode::PREV},
+            {"next_track", aasdk::proto::enums::ButtonCode::NEXT},
+            {"toggle_play", aasdk::proto::enums::ButtonCode::TOGGLE_PLAY}
+        };
 
-        switch(command) {
-            case "previous_track":
-                buttonCode = aasdk::proto::enums::ButtonCode::PREV;
-                break;
-            case "next_track":
-                buttonCode = aasdk::proto::enums::ButtonCode::Next;
-                break;
-            case "toggle_play":
-                buttonCode = aasdk::proto::enums::ButtonCode::TOGGLE_PLAY;
-                break;
-            default:
-                return;
-        }
-
-        if (buttonCode) {
-            this->android_auto().handler->injectButtonPressHelper(buttonCode, Action::ActionState::Triggered);
+        auto buttonCode = commandMap.find(command.toStdString());
+        if (buttonCode != commandMap.end()) {
+            this->android_auto().handler->injectButtonPressHelper(buttonCode->second, Action::ActionState::Triggered);
+        } else {
+            return;
         }
     } else {
       // TODO: generic command?
