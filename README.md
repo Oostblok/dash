@@ -40,3 +40,6 @@ cd dash
 
 ./install.sh
 ```
+
+# Media Controls
+I forked the project to add media controls triggered by the server so I can trigger those by any input (physical buttons).
