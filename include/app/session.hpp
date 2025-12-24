@@ -172,6 +172,7 @@ class Session {
 
     struct AndroidAuto {
         AAHandler *handler;
+        bool connected;
 
         AndroidAuto(Arbiter &arbiter);
     };

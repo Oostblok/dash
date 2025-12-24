@@ -43,6 +43,9 @@ class Arbiter : public QObject {
     void set_volume(uint8_t volume);
     void decrease_volume(uint8_t val);
     void increase_volume(uint8_t val);
+    void previous_track();
+    void next_track();
+    void toggle_play();
     void set_cursor(bool enabled);
     void set_action(Action *action, QString key);
 

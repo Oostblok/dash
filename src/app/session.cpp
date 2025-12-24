@@ -376,6 +376,7 @@ QWidget *Session::Forge::volume_slider(bool buttons) const
 
 Session::AndroidAuto::AndroidAuto(Arbiter &arbiter)
     : handler(new AAHandler())
+    , connected(false)
 {
 
 }

@@ -423,6 +423,7 @@ void OpenAutoPage::init()
     this->worker = new OpenAutoWorker(callback, this->arbiter.theme().mode == Session::Theme::Dark, frame, this->arbiter);
 
     connect(this->frame, &OpenAutoFrame::toggle, [this](bool enable){
+        this->arbiter.android_auto().connected = enable;
         this->setCurrentIndex(enable ? 1 : 0);
 
         if (Config::get_instance()->get_show_aa_connected()) {
@@ -434,7 +435,7 @@ void OpenAutoPage::init()
             this->button()->setIcon(icon);
         }
     });
-    
+
     AAHandler *aa_handler = this->arbiter.android_auto().handler;
     connect(&this->arbiter, &Arbiter::mode_changed, [this, aa_handler](Session::Theme::Mode mode){
         aa_handler->setNightMode(mode == Session::Theme::Dark);

@@ -226,6 +226,50 @@ void Arbiter::increase_volume(uint8_t val)
     this->set_volume(std::min(std::max(0, this->system().volume + val), 100));
 }
 
+void Arbiter::send_media_command(const std::string& command)
+{
+    if (this->android_auto().connected) {
+        aasdk::proto::enums::ButtonCode::Enum buttonCode;
+
+        switch(command) {
+            case "previous_track":
+                buttonCode = aasdk::proto::enums::ButtonCode::PREV;
+                break;
+            case "next_track":
+                buttonCode = aasdk::proto::enums::ButtonCode::Next;
+                break;
+            case "toggle_play":
+                buttonCode = aasdk::proto::enums::ButtonCode::TOGGLE_PLAY;
+                break;
+            default:
+                return;
+        }
+
+        if (buttonCode) {
+            this->android_auto().handler->injectButtonPressHelper(buttonCode, Action::ActionState::Triggered);
+        }
+    } else {
+      // TODO: generic command?
+      qDebug() << "send_media_command: " << command;
+    }
+}
+
+void Arbiter::previous_track()
+{
+    this->send_media_command("previous_track");
+}
+
+void Arbiter::next_track()
+{
+    this->send_media_command("next_track");
+}
+
+void Arbiter::toggle_play()
+{
+    this->send_media_command("toggle_play");
+    // TODO: return play/pause state
+}
+
 void Arbiter::set_cursor(bool enabled)
 {
     this->session_.core_.cursor = enabled;

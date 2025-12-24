@@ -153,6 +153,25 @@ void Server::add_action_handlers()
             return QMap<QString, QVariant>({{"volume", arbiter.system().volume}});
         }
     });
+    this->register_handler("previous_track", Server::ActionHandler{
+        [&arbiter](QVariant){
+            arbiter.previous_track();
+            return QMap<QString, QVariant>({{"previous_track", "done"}});
+        }
+    });
+    this->register_handler("next_track", Server::ActionHandler{
+        [&arbiter](QVariant){
+            arbiter.next_track();
+            return QMap<QString, QVariant>({{"next_track", "done"}});
+        }
+    });
+    this->register_handler("toggle_play", Server::ActionHandler{
+        [&arbiter](QVariant){
+            arbiter.toggle_play();
+            // TODO: Return play/pause state
+            return QMap<QString, QVariant>({{"toggle_play", "done"}});
+        }
+    });
 }
 
 void Server::start()
