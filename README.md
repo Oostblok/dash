@@ -40,3 +40,7 @@ cd dash
 
 ./install.sh
 ```
+
+# Media Controls
+I forked the project to add media controls triggered by the server so I can trigger those by any input (physical buttons).
+I've added the `previous_track`, `next_track` and `toggle_play` actions
