@@ -1,7 +1,7 @@
 #pragma once
 
-#include <QLabel>
-#include <QVBoxLayout>
+#include <QWidget>
+#include <QPointer>
 
 #include "app/pages/page.hpp"
 
@@ -11,5 +11,6 @@ public:
     void init() override;
 
 private:
-    QLabel *label_;
+    QWidget *root_ = nullptr;
+    QWidget *dhuContainer_ = nullptr;
 };
