@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="886.24"
+     height="609.4"
+     viewBox="0 0 886.24 609.4">
+
+    <path fill="currentColor" d="M296.62 0C429.72 0 513.6 66.55 513.6 190.64c0 88.04-39.51 165.68-110.92 210.05-58.92 37.43-107.45 49.91-192.02 49.91H37.35l4.85-19.41c56.15-4.85 62.39-11.09 72.1-64.47l54.77-282.15c10.4-54.77 8.32-60.31-53.38-65.16L120.54 0h176.08zM173.23 360.48c-11.09 58.23 24.96 64.47 65.16 64.47 142.11 0 210.74-111.61 210.74-237.78 0-107.45-56.15-162.91-158.06-162.91-40.9 0-54.07 3.47-61 40.9l-56.84 295.32z"/>
+
+    <path fill="currentColor" d="M808.68 341.1c-9.01 26.54-31.89 77.64-43.67 95.56-20.8 2.65-64.47 13.94-114.38 13.94-119.24 0-205.2-70.34-205.2-191.79C445.42 102.2 572.98 0 728.26 0c58.23 0 95.67 9.29 120.62 15.93-4.85 22.56-10.4 67.03-13.86 100.21l-21.49 1.33c-1.39-77.64-35.36-93.57-100.52-93.57-118.54 0-201.04 110.16-201.04 234.26 0 100.21 51.3 167.9 144.19 167.9 67.94 0 99.82-38.49 133.79-93.57l18.73 8.61z"/>
+
+    <rect x="177.25" y="550.32" width="59.08" height="59.08" fill="currentColor"/>
+    <rect x="0" y="491.23" width="59.08" height="59.08" fill="currentColor"/>
+    <rect x="59.08" y="550.32" width="59.08" height="59.08" fill="currentColor"/>
+    <rect x="118.17" y="491.23" width="59.08" height="59.08" fill="currentColor"/>
+
+    <rect x="413.58" y="550.32" width="59.08" height="59.08" fill="currentColor"/>
+    <rect x="236.33" y="491.23" width="59.08" height="59.08" fill="currentColor"/>
+    <rect x="295.41" y="550.32" width="59.08" height="59.08" fill="currentColor"/>
+    <rect x="354.5" y="491.23" width="59.08" height="59.08" fill="currentColor"/>
+
+    <rect x="649.91" y="550.32" width="59.08" height="59.08" fill="currentColor"/>
+    <rect x="472.66" y="491.23" width="59.08" height="59.08" fill="currentColor"/>
+    <rect x="531.74" y="550.32" width="59.08" height="59.08" fill="currentColor"/>
+    <rect x="590.83" y="491.23" width="59.08" height="59.08" fill="currentColor"/>
+
+    <rect x="708.99" y="491.23" width="59.08" height="59.08" fill="currentColor"/>
+    <rect x="768.07" y="550.32" width="59.08" height="59.08" fill="currentColor"/>
+    <rect x="827.16" y="491.23" width="59.08" height="59.08" fill="currentColor"/>
+
+    <rect x="0" y="477.91" width="886.24" height="13.32" fill="currentColor"/>
+</svg>

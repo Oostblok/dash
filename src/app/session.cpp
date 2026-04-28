@@ -12,6 +12,7 @@
 #include <QTextStream>
 
 #include "app/arbiter.hpp"
+#include "app/pages/aa.hpp"
 #include "app/pages/camera.hpp"
 #include "app/pages/vehicle.hpp"
 #include "app/pages/launcher.hpp"
@@ -118,6 +119,7 @@ Session::Layout::Layout(QSettings &settings, Arbiter &arbiter)
     , fullscreen(settings, arbiter)
 {
     this->pages_ = {
+        new AAPage(arbiter),
         this->openauto_page,
         new MediaPage(arbiter),
         new VehiclePage(arbiter),
