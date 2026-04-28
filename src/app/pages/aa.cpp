@@ -34,10 +34,8 @@ AAPage::AAPage(Arbiter &arbiter)
     // ---------------------------
     // START DHU AFTER 10 SECONDS
     // ---------------------------
-    // werkt een soort van maar het is nog niet inline
     QTimer::singleShot(10000, [this, layout, svg]() {
-        QString dhuPath = QDir::homePath()
-            + "/Android/Sdk/extras/google/auto/desktop-head-unit";
+        QString dhuPath = QDir::homePath() + "/Android/Sdk/extras/google/auto/desktop-head-unit";
 
         auto dhuProcess = new QProcess();
         dhuProcess->setParent(nullptr);
@@ -49,6 +47,7 @@ AAPage::AAPage(Arbiter &arbiter)
         }
 
         qint64 pid = dhuProcess->processId();
+        qDebug() << "DHU process started with PID:" << pid;
 
         QTimer::singleShot(2000, [layout, svg, pid]() {
             QProcess find;
@@ -65,7 +64,10 @@ AAPage::AAPage(Arbiter &arbiter)
                 return;
             }
 
+
             WId winId = output.split('\n').first().toULongLong();
+
+            qDebug() << "DHU window found:" << windId;
 
             QWindow *win = QWindow::fromWinId(winId);
             win->setFlags(Qt::FramelessWindowHint | Qt::CustomizeWindowHint);
@@ -79,6 +81,4 @@ AAPage::AAPage(Arbiter &arbiter)
     });
 }
 
-void AAPage::init()
-{
-}
+void AAPage::init() {}
