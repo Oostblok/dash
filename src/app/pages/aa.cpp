@@ -1,5 +1,4 @@
 #include "app/pages/aa.hpp"
-
 #include <QVBoxLayout>
 #include <QFile>
 #include <QSvgWidget>
@@ -8,7 +7,6 @@
 #include <QDir>
 #include <QDebug>
 #include <QWindow>
-#include <QEvent>
 
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
@@ -26,13 +24,9 @@ static unsigned long getWindowPID(Display *display, Window w)
     unsigned long nitems, bytesAfter;
     unsigned char *prop = nullptr;
 
-    if (XGetWindowProperty(display, w,
-                           atom, 0, 1, False,
-                           AnyPropertyType,
-                           &actualType, &format,
-                           &nitems, &bytesAfter,
-                           &prop) != Success)
+    if (XGetWindowProperty(display, w, atom, 0, 1, False, AnyPropertyType, &actualType, &format, &nitems, &bytesAfter, &prop) != Success) {
         return 0;
+    }
 
     unsigned long pid = 0;
     if (prop) {
@@ -42,8 +36,6 @@ static unsigned long getWindowPID(Display *display, Window w)
 
     return pid;
 }
-
-static Window findDHUWindow(Display *display, unsigned long targetPid);
 
 static Window findDHUWindowRecursive(Display *display, unsigned long targetPid, Window root)
 {
@@ -57,7 +49,6 @@ static Window findDHUWindowRecursive(Display *display, unsigned long targetPid, 
     Window result = 0;
 
     for (unsigned int i = 0; i < count; i++) {
-
         XWindowAttributes attr;
         if (!XGetWindowAttributes(display, children[i], &attr))
             continue;
@@ -86,10 +77,8 @@ static Window findDHUWindowRecursive(Display *display, unsigned long targetPid, 
     return result;
 }
 
-static Window findDHUWindow(Display *display, unsigned long targetPid)
-{
-    Window root = DefaultRootWindow(display);
-    return findDHUWindowRecursive(display, targetPid, root);
+static Window findDHUWindow(Display *display, unsigned long targetPid) {
+    return findDHUWindowRecursive(display, targetPid, DefaultRootWindow(display));
 }
 
 AAPage::AAPage(Arbiter &arbiter)
@@ -100,7 +89,6 @@ AAPage::AAPage(Arbiter &arbiter)
     auto layout = new QVBoxLayout(root);
     layout->setAlignment(Qt::AlignCenter);
 
-    // placeholder UI
     QFile file(":/graphics/dc.svg");
     file.open(QIODevice::ReadOnly);
     QString svgData = file.readAll();
@@ -119,9 +107,7 @@ AAPage::AAPage(Arbiter &arbiter)
         QString dhuPath = QDir::homePath()
             + "/Android/Sdk/extras/google/auto/desktop-head-unit";
 
-        auto proc = new QProcess();
-        proc->setParent(nullptr);
-
+        auto proc = new QProcess(root);
         proc->start(dhuPath, {"-u"});
 
         if (!proc->waitForStarted(3000)) {
@@ -130,15 +116,14 @@ AAPage::AAPage(Arbiter &arbiter)
         }
 
         unsigned long pid = proc->processId();
-        qDebug() << "DHU PID:" << pid;
 
-        QTimer *poll = new QTimer();
+        QTimer *poll = new QTimer(root);
         poll->setInterval(300);
 
         QObject::connect(poll, &QTimer::timeout, [=]() mutable {
             Display *display = XOpenDisplay(nullptr);
             if (!display) {
-                qWarning() << "X11 display not available";
+                qWarning() << "display not available";
                 return;
             }
 
@@ -151,31 +136,30 @@ AAPage::AAPage(Arbiter &arbiter)
             poll->stop();
             poll->deleteLater();
 
-            qDebug() << "DHU window found:" << win;
+            Atom hints = XInternAtom(display, "_MOTIF_WM_HINTS", False);
+            struct {
+                unsigned long flags, functions, decorations;
+                long input_mode;
+                unsigned long status;
+            } mwmHints = {2, 0, 0, 0, 0};
+            XChangeProperty(display, win, hints, hints, 32, PropModeReplace, (unsigned char *)&mwmHints, 5);
 
-            Window parent = (Window)root->winId();
+            XUnmapWindow(display, win);
+            XFlush(display);
 
-            XReparentWindow(display, win, parent, 0, 0);
+            XReparentWindow(display, win, (Window)root->winId(), 0, 0);
             XResizeWindow(display, win, DHU_W, DHU_H);
             XMapWindow(display, win);
             XFlush(display);
-
-            qDebug() << "root->winId():" << root->winId();
-            qDebug() << "win (DHU window):" << win;
-            qDebug() << "root->isVisible():" << root->isVisible();
+            XCloseDisplay(display);
 
             QWindow *external = QWindow::fromWinId(win);
-
-            QWidget *container =
-                QWidget::createWindowContainer(external, root);
-
+            QWidget *container = QWidget::createWindowContainer(external, root);
             container->setFixedSize(DHU_W, DHU_H);
-
+            container->setFocusPolicy(Qt::NoFocus);
             layout->addWidget(container, 0, Qt::AlignCenter);
 
             svg->deleteLater();
-
-            XCloseDisplay(display);
         });
 
         poll->start();
