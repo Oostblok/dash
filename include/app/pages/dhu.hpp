@@ -5,9 +5,9 @@
 
 #include "app/pages/page.hpp"
 
-class AAPage : public Page {
+class DHUPage : public Page {
 public:
-    AAPage(Arbiter &arbiter);
+    DHUPage(Arbiter &arbiter);
     void init() override;
 
 private:

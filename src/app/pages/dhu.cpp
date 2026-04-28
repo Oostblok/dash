@@ -1,4 +1,4 @@
-#include "app/pages/aa.hpp"
+#include "app/pages/dhu.hpp"
 #include <QVBoxLayout>
 #include <QFile>
 #include <QSvgWidget>
@@ -81,8 +81,8 @@ static Window findDHUWindow(Display *display, unsigned long targetPid) {
     return findDHUWindowRecursive(display, targetPid, DefaultRootWindow(display));
 }
 
-AAPage::AAPage(Arbiter &arbiter)
-    : Page(arbiter, "AA", "directions_car", false, new QWidget())
+DHUPage::DHUPage(Arbiter &arbiter)
+    : Page(arbiter, "DHU", "directions_car", false, new QWidget())
 {
     QWidget *root = this->container()->take();
 
@@ -166,4 +166,7 @@ AAPage::AAPage(Arbiter &arbiter)
     });
 }
 
-void AAPage::init() {}
+void DHUPage::init() {
+  qDebug() << "Session::Theme::Dark";
+//   qDebug() << Session::Theme::Dark;
+}
