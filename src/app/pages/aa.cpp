@@ -10,16 +10,12 @@
 #include <QWindow>
 #include <QEvent>
 
-// X11
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 
 static constexpr int DHU_W = 800;
 static constexpr int DHU_H = 480;
 
-// -----------------------------------------------------
-// helper: read _NET_WM_PID
-// -----------------------------------------------------
 static unsigned long getWindowPID(Display *display, Window w)
 {
     Atom atom = XInternAtom(display, "_NET_WM_PID", True);
@@ -47,12 +43,8 @@ static unsigned long getWindowPID(Display *display, Window w)
     return pid;
 }
 
-// -----------------------------------------------------
-// helper: find DHU window (recursive)
-// -----------------------------------------------------
 static Window findDHUWindow(Display *display, unsigned long targetPid);
 
-// private recursive helper
 static Window findDHUWindowRecursive(Display *display, unsigned long targetPid, Window root)
 {
     Window rootReturn, parent;
@@ -83,7 +75,6 @@ static Window findDHUWindowRecursive(Display *display, unsigned long targetPid, 
             break;
         }
 
-        // recursively search children
         result = findDHUWindowRecursive(display, targetPid, children[i]);
         if (result)
             break;
@@ -95,16 +86,12 @@ static Window findDHUWindowRecursive(Display *display, unsigned long targetPid, 
     return result;
 }
 
-// public entry point (original call still works)
 static Window findDHUWindow(Display *display, unsigned long targetPid)
 {
     Window root = DefaultRootWindow(display);
     return findDHUWindowRecursive(display, targetPid, root);
 }
 
-// -----------------------------------------------------
-// constructor
-// -----------------------------------------------------
 AAPage::AAPage(Arbiter &arbiter)
     : Page(arbiter, "AA", "directions_car", false, new QWidget())
 {
@@ -128,9 +115,6 @@ AAPage::AAPage(Arbiter &arbiter)
 
     this->container()->reset();
 
-    // -------------------------------------------------
-    // start DHU
-    // -------------------------------------------------
     QTimer::singleShot(3000, [=]() {
         QString dhuPath = QDir::homePath()
             + "/Android/Sdk/extras/google/auto/desktop-head-unit";
@@ -148,9 +132,6 @@ AAPage::AAPage(Arbiter &arbiter)
         unsigned long pid = proc->processId();
         qDebug() << "DHU PID:" << pid;
 
-        // -------------------------------------------------
-        // poll X11 until window exists
-        // -------------------------------------------------
         QTimer *poll = new QTimer();
         poll->setInterval(300);
 
@@ -164,18 +145,14 @@ AAPage::AAPage(Arbiter &arbiter)
             Window win = findDHUWindow(display, pid);
             if (!win) {
                 XCloseDisplay(display);
-                return; // keep polling
+                return;
             }
 
-            // stop polling
             poll->stop();
             poll->deleteLater();
 
             qDebug() << "DHU window found:" << win;
 
-            // -------------------------------------------------
-            // embed via X11
-            // -------------------------------------------------
             Window parent = (Window)root->winId();
 
             XReparentWindow(display, win, parent, 0, 0);
@@ -187,9 +164,6 @@ AAPage::AAPage(Arbiter &arbiter)
             qDebug() << "win (DHU window):" << win;
             qDebug() << "root->isVisible():" << root->isVisible();
 
-            // -------------------------------------------------
-            // Qt wrapper
-            // -------------------------------------------------
             QWindow *external = QWindow::fromWinId(win);
 
             QWidget *container =
@@ -208,5 +182,4 @@ AAPage::AAPage(Arbiter &arbiter)
     });
 }
 
-// -----------------------------------------------------
 void AAPage::init() {}
