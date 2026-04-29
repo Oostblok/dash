@@ -49,11 +49,11 @@ class AAWorker : public QObject {
 public:
     AAWorker(std::function<void(bool)> callback, QObject *parent = nullptr);
     ~AAWorker();
+    void waitForDevice();
 
 private:
     void create_usb_workers();
     void create_io_service_workers();
-    void waitForDevice();
 
     std::function<void(bool)> callback;
     libusb_context *usb_context = nullptr;

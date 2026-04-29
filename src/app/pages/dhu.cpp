@@ -151,7 +151,7 @@ void AAWorker::waitForDevice()
 
 DHUPage::DHUPage(Arbiter &arbiter)
     : QStackedWidget()
-    , Page(arbiter, "AA", "directions_car", false, this)
+    , Page(arbiter, "DHU", "android_auto", false, this)
 {
 }
 
@@ -202,16 +202,14 @@ void DHUPage::init()
     this->addWidget(dhuContainer);
     this->setCurrentIndex(0);
 
-    std::function<void(bool)> callback = [this, dhuContainer, dhuLayout, loader](bool connected) {
-        if (connected) {
-            this->arbiter.dhu().connected = true;
-            this->setCurrentIndex(1);
-            this->launchDHU(dhuContainer, dhuLayout, loader);
-        } else {
-            this->arbiter.dhu().connected = false;
-            this->killDHU();
-            this->setCurrentIndex(0);
-        }
+    std::function<void(bool)> callback = [this, dhuContainer, dhuLayout, loader](bool) {
+        this->arbiter.dhu().connected = true;
+        this->setCurrentIndex(1);
+        this->launchDHU(dhuContainer, dhuLayout, loader);
+
+        auto icon = this->button()->icon();
+        icon.addFile(QString(":/icons/android_auto_color.svg"), QSize(), QIcon::Active, QIcon::On);
+        this->button()->setIcon(icon);
     };
 
     this->worker = new AAWorker(callback, this);
