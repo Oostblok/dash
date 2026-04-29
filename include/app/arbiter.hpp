@@ -58,6 +58,7 @@ class Arbiter : public QObject {
     Session::Forge &forge() { return this->session_.forge_; }
     Session::Core &core() { return this->session_.core_; }
     Session::AndroidAuto &android_auto() { return this->session_.android_auto_; }
+    Session::DHU &dhu() { return this->session_.dhu_; }
     void update() { this->session_.update(); }
 
    private:

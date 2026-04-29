@@ -157,6 +157,8 @@ DHUPage::DHUPage(Arbiter &arbiter)
 
 void DHUPage::init()
 {
+    this->arbiter.dhu().page = this;
+
     QWidget *waiting = new QWidget(this);
     QVBoxLayout *waitingLayout = new QVBoxLayout(waiting);
     waitingLayout->setAlignment(Qt::AlignCenter);
@@ -194,9 +196,11 @@ void DHUPage::init()
 
     std::function<void(bool)> callback = [this, dhuContainer, dhuLayout, loader](bool connected) {
         if (connected) {
+            this->arbiter.dhu().connected = true;
             this->setCurrentIndex(1);
             this->launchDHU(dhuContainer, dhuLayout, loader);
         } else {
+            this->arbiter.dhu().connected = false;
             this->killDHU();
             this->setCurrentIndex(0);
         }

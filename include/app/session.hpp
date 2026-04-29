@@ -30,6 +30,8 @@
 
 class Arbiter;
 
+class DHUPage;
+
 class Session {
    public:
     static QDir plugin_dir(QString plugin);
@@ -177,6 +179,15 @@ class Session {
         AndroidAuto(Arbiter &arbiter);
     };
 
+    struct DHU {
+        DHUPage *page;
+        bool connected;
+
+        DHU();
+        void setNightMode(bool night);
+        void sendKey(const QString &key);
+    };
+
     struct Core {
         bool cursor;
 
@@ -208,5 +219,6 @@ class Session {
     System system_;
     Forge forge_;
     AndroidAuto android_auto_;
+    DHU dhu_;
     Core core_;
 };

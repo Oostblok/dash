@@ -4,7 +4,7 @@
 #include <QStackedWidget>
 #include <QProcess>
 #include <QVBoxLayout>
-#include <QSvgWidget>
+#include <QtSvg/QSvgWidget>
 #include <functional>
 #include <thread>
 #include <vector>
@@ -22,6 +22,7 @@
 #include "openauto/Service/IAndroidAutoEntityFactory.hpp"
 #include "openauto/Service/IAndroidAutoEntity.hpp"
 
+#include "app/arbiter.hpp"
 #include "app/pages/page.hpp"
 
 class Arbiter;

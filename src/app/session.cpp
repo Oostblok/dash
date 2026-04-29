@@ -383,6 +383,22 @@ Session::AndroidAuto::AndroidAuto(Arbiter &arbiter)
 
 }
 
+Session::DHU::DHU()
+    : page(nullptr)
+    , connected(false)
+{
+}
+
+void Session::DHU::setNightMode(bool night)
+{
+    qDebug() << "DHU night mode:" << night; // TODO: implement
+}
+
+void Session::DHU::sendKey(const QString &key)
+{
+    qDebug() << "DHU key:" << key; // TODO: implement
+}
+
 Session::Core::Core(QSettings &settings, Arbiter &arbiter)
     : cursor(settings.value("Core/cursor", true).toBool())
 {
@@ -499,6 +515,7 @@ Session::Session(Arbiter &arbiter)
     , forge_(arbiter)
     , core_(settings_, arbiter)
     , android_auto_(arbiter)
+    , dhu_()
 {
 }
 
