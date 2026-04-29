@@ -23,6 +23,7 @@
 #include "openauto/Service/IAndroidAutoEntity.hpp"
 
 #include "app/pages/page.hpp"
+#include "app/session.hpp"
 
 class Arbiter;
 
@@ -85,5 +86,6 @@ private:
     AAWorker *worker = nullptr;
     QProcess *dhuProcess = nullptr;
     QSvgWidget *logo = nullptr;
+    QByteArray loadSvg(Session::Theme::Mode mode);
 };
 

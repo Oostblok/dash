@@ -149,12 +149,20 @@ void AAWorker::waitForDevice()
     this->usb_hub->start(std::move(promise));
 }
 
-// ---- DHUPage ----
-
 DHUPage::DHUPage(Arbiter &arbiter)
     : QStackedWidget()
     , Page(arbiter, "AA", "directions_car", false, this)
 {
+}
+
+QByteArray DHUPage::loadSvg(Session::Theme::Mode mode)
+{
+    QFile file(":/graphics/dc.svg");
+    file.open(QIODevice::ReadOnly);
+    QString svgData = file.readAll();
+    QString color = mode == Session::Theme::Dark ? "#ffffff" : "#000000";
+    svgData.replace("currentColor", color);
+    return svgData.toUtf8();
 }
 
 void DHUPage::init()
@@ -165,14 +173,8 @@ void DHUPage::init()
     QVBoxLayout *waitingLayout = new QVBoxLayout(waiting);
     waitingLayout->setAlignment(Qt::AlignCenter);
 
-    QFile file(":/graphics/dc.svg");
-    file.open(QIODevice::ReadOnly);
-    QString svgData = file.readAll();
-    QString color = "#ffffff"; // TODO: adjust to dark/light mode from Session
-    svgData.replace("currentColor", color);
-
     this->logo = new QSvgWidget(waiting);
-    this->logo->load(svgData.toUtf8());
+    this->logo->load(this->loadSvg(this->arbiter.theme().mode));
 
     waitingLayout->addWidget(logo, 0, Qt::AlignCenter);
 
@@ -183,6 +185,11 @@ void DHUPage::init()
     waitingLayout->addWidget(connectLabel, 0, Qt::AlignCenter);
 
     this->addWidget(waiting);
+
+    connect(&this->arbiter, &Arbiter::mode_changed, [this](Session::Theme::Mode mode) {
+        QString svgData = this->loadSvg(mode);
+        this->logo->load(svgData.toUtf8());
+    });
 
     QWidget *dhuContainer = new QWidget(this);
     QVBoxLayout *dhuLayout = new QVBoxLayout(dhuContainer);
