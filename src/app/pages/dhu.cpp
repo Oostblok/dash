@@ -1,4 +1,6 @@
 #include "app/pages/dhu.hpp"
+#include "app/arbiter.hpp"
+
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QFile>
@@ -169,12 +171,12 @@ void DHUPage::init()
     QString color = "#ffffff"; // TODO: adjust to dark/light mode from Session
     svgData.replace("currentColor", color);
 
-    auto logo = new QSvgWidget(waiting);
-    logo->load(svgData.toUtf8());
-    logo->setFixedSize(128, 88); // TODO: make size dynamic
+    this->logo = new QSvgWidget(waiting);
+    this->logo->load(svgData.toUtf8());
+
     waitingLayout->addWidget(logo, 0, Qt::AlignCenter);
 
-    waitingLayout->addSpacing(12);
+    waitingLayout->addSpacing(24);
 
     QLabel *connectLabel = new QLabel("Connect your phone to start Android Auto", waiting);
     connectLabel->setAlignment(Qt::AlignCenter);
@@ -186,7 +188,6 @@ void DHUPage::init()
     QVBoxLayout *dhuLayout = new QVBoxLayout(dhuContainer);
     dhuLayout->setAlignment(Qt::AlignCenter);
 
-    // TODO: animate "blocks" in DC logo --> svg css animation by class?
     QLabel *loader = new QLabel("Loading...", dhuContainer);
     loader->setAlignment(Qt::AlignCenter);
     dhuLayout->addWidget(loader, 0, Qt::AlignCenter);
@@ -274,5 +275,15 @@ void DHUPage::killDHU()
         this->dhuProcess->terminate();
         this->dhuProcess->waitForFinished(2000);
         this->dhuProcess = nullptr;
+    }
+}
+
+void DHUPage::resizeEvent(QResizeEvent *event)
+{
+    QStackedWidget::resizeEvent(event);
+    if (logo) {
+        int h = this->height() * 0.4;
+        int w = h * (886.24 / 609.4);
+        logo->setFixedSize(w, h);
     }
 }

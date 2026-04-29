@@ -22,7 +22,6 @@
 #include "openauto/Service/IAndroidAutoEntityFactory.hpp"
 #include "openauto/Service/IAndroidAutoEntity.hpp"
 
-#include "app/arbiter.hpp"
 #include "app/pages/page.hpp"
 
 class Arbiter;
@@ -76,10 +75,15 @@ public:
     DHUPage(Arbiter &arbiter);
     void init() override;
 
+protected:
+    void resizeEvent(QResizeEvent *event) override;
+
 private:
     void launchDHU(QWidget *root, QVBoxLayout *layout, QLabel *loader);
     void killDHU();
 
     AAWorker *worker = nullptr;
     QProcess *dhuProcess = nullptr;
+    QSvgWidget *logo = nullptr;
 };
+
