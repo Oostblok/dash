@@ -217,6 +217,8 @@ void DHUPage::init()
 
 void DHUPage::launchDHU(QWidget *root, QVBoxLayout *layout, QLabel *loader)
 {
+    loader->show();
+
     QString dhuPath = QDir::homePath() + "/Android/Sdk/extras/google/auto/desktop-head-unit";
 
     this->dhuProcess = new QProcess(root);
@@ -226,6 +228,19 @@ void DHUPage::launchDHU(QWidget *root, QVBoxLayout *layout, QLabel *loader)
         qWarning() << "DHU failed to start";
         return;
     }
+
+    QObject::connect(this->dhuProcess, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), [this](int code, QProcess::ExitStatus status) {
+        qDebug() << "[DHU] process exited, code:" << code << "status:" << status;
+        this->dhuProcess = nullptr;
+        this->arbiter.dhu().connected = false;
+        this->setCurrentIndex(0);
+
+        auto icon = this->button()->icon();
+        icon.addFile(QString(":/icons/android_auto.svg"), QSize(), QIcon::Active, QIcon::Off);
+        this->button()->setIcon(icon);
+
+        this->worker->waitForDevice();
+    });
 
     unsigned long pid = this->dhuProcess->processId();
 
@@ -268,7 +283,7 @@ void DHUPage::launchDHU(QWidget *root, QVBoxLayout *layout, QLabel *loader)
         container->setFocusPolicy(Qt::NoFocus);
         layout->addWidget(container, 0, Qt::AlignCenter);
 
-        loader->deleteLater();
+        loader->hide();
     });
 
     poll->start();
