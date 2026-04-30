@@ -82,11 +82,14 @@ protected:
 private:
     void launchDHU(QWidget *root, QVBoxLayout *layout, QLabel *loader);
     void killDHU();
+    void fitDHUToAspectRatio();
 
     AAWorker *worker = nullptr;
     QProcess *dhuProcess = nullptr;
     QWidget *dhuContainerWidget = nullptr;
     QSvgWidget *logo = nullptr;
     QByteArray loadSvg(Session::Theme::Mode mode);
+    double aspectRatio = 16.0 / 9.0;
+//     double aspectRatio = 5.0 / 3.0; // 800x480
 };
 

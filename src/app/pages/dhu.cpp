@@ -191,6 +191,8 @@ void DHUPage::init()
     QWidget *dhuContainer = new QWidget(this);
     QVBoxLayout *dhuLayout = new QVBoxLayout(dhuContainer);
     dhuLayout->setAlignment(Qt::AlignCenter);
+    dhuLayout->setContentsMargins(0, 0, 0, 0);
+    dhuLayout->setSpacing(0);
 
     QLabel *loader = new QLabel("Loading...", dhuContainer);
     loader->setAlignment(Qt::AlignCenter);
@@ -280,10 +282,14 @@ void DHUPage::launchDHU(QWidget *root, QVBoxLayout *layout, QLabel *loader)
         XCloseDisplay(display);
 
         QWindow *external = QWindow::fromWinId(win);
-        this->dhuContainerWidget = QWidget::createWindowContainer(external, root); // Store reference
+        this->dhuContainerWidget = QWidget::createWindowContainer(external, root);
         this->dhuContainerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
         this->dhuContainerWidget->setFocusPolicy(Qt::NoFocus);
         layout->addWidget(this->dhuContainerWidget);
+
+        QTimer::singleShot(0, this, [this]() {
+            fitDHUToAspectRatio();
+        });
 
         loader->hide();
     });
@@ -305,12 +311,23 @@ void DHUPage::resizeEvent(QResizeEvent *event)
     QStackedWidget::resizeEvent(event);
 
     if (logo) {
-        int h = this->height() * 0.4;
-        int w = h * (886.24 / 609.4);
-        logo->setFixedSize(w, h);
+        int logoH = event->size().height() * 0.4;
+        int logoW = logoH * (886.24 / 609.4);
+        logo->setFixedSize(logoW, logoH);
     }
 
-    if (this->dhuContainerWidget && this->dhuContainerWidget->isVisible()) {
-        this->dhuContainerWidget->setFixedSize(event->size());
+    if (this->dhuContainerWidget) {
+        fitDHUToAspectRatio();
     }
+}
+void DHUPage::fitDHUToAspectRatio()
+{
+    if (!this->dhuContainerWidget)
+        return;
+
+    int h = this->height();
+
+    this->dhuContainerWidget->setFixedWidth(
+        static_cast<int>(h * this->aspectRatio)
+    );
 }
