@@ -85,6 +85,7 @@ private:
 
     AAWorker *worker = nullptr;
     QProcess *dhuProcess = nullptr;
+    QWidget *dhuContainerWidget = nullptr;
     QSvgWidget *logo = nullptr;
     QByteArray loadSvg(Session::Theme::Mode mode);
 };

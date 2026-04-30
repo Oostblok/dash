@@ -14,9 +14,6 @@
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 
-static constexpr int DHU_W = 800;
-static constexpr int DHU_H = 480;
-
 static unsigned long getWindowPID(Display *display, Window w)
 {
     Atom atom = XInternAtom(display, "_NET_WM_PID", True);
@@ -222,7 +219,11 @@ void DHUPage::launchDHU(QWidget *root, QVBoxLayout *layout, QLabel *loader)
     QString dhuPath = QDir::homePath() + "/Android/Sdk/extras/google/auto/desktop-head-unit";
 
     this->dhuProcess = new QProcess(root);
-    this->dhuProcess->start(dhuPath, {"-u"});
+    this->dhuProcess->start(dhuPath, {"-u"}); // TODO: use -usb=DEVICE_ID or -adb=HOSTPORT ?
+    // TODO: add -c --config=FILE for the config file
+    // TODO: use this->dhuProcess to run terminal commands --> `keycode media_play_pause` etc.
+    // TODO: keycode day | shift-n -- keycode night | ctrl-n
+    // TODO: focus video {on|off|toggle} on page active/inactive
 
     if (!this->dhuProcess->waitForStarted(3000)) {
         qWarning() << "DHU failed to start";
@@ -232,6 +233,7 @@ void DHUPage::launchDHU(QWidget *root, QVBoxLayout *layout, QLabel *loader)
     QObject::connect(this->dhuProcess, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), [this](int code, QProcess::ExitStatus status) {
         qDebug() << "[DHU] process exited, code:" << code << "status:" << status;
         this->dhuProcess = nullptr;
+        this->dhuContainerWidget = nullptr;
         this->arbiter.dhu().connected = false;
         this->setCurrentIndex(0);
 
@@ -272,16 +274,16 @@ void DHUPage::launchDHU(QWidget *root, QVBoxLayout *layout, QLabel *loader)
         XFlush(display);
 
         XReparentWindow(display, win, (Window)root->winId(), 0, 0);
-        XResizeWindow(display, win, DHU_W, DHU_H);
+        XResizeWindow(display, win, root->width(), root->height());
         XMapWindow(display, win);
         XFlush(display);
         XCloseDisplay(display);
 
         QWindow *external = QWindow::fromWinId(win);
-        QWidget *container = QWidget::createWindowContainer(external, root);
-        container->setFixedSize(DHU_W, DHU_H);
-        container->setFocusPolicy(Qt::NoFocus);
-        layout->addWidget(container, 0, Qt::AlignCenter);
+        this->dhuContainerWidget = QWidget::createWindowContainer(external, root); // Store reference
+        this->dhuContainerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        this->dhuContainerWidget->setFocusPolicy(Qt::NoFocus);
+        layout->addWidget(this->dhuContainerWidget);
 
         loader->hide();
     });
@@ -301,9 +303,14 @@ void DHUPage::killDHU()
 void DHUPage::resizeEvent(QResizeEvent *event)
 {
     QStackedWidget::resizeEvent(event);
+
     if (logo) {
         int h = this->height() * 0.4;
         int w = h * (886.24 / 609.4);
         logo->setFixedSize(w, h);
+    }
+
+    if (this->dhuContainerWidget && this->dhuContainerWidget->isVisible()) {
+        this->dhuContainerWidget->setFixedSize(event->size());
     }
 }
