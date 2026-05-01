@@ -217,11 +217,14 @@ void DHUPage::init()
 void DHUPage::launchDHU(QWidget *root, QVBoxLayout *layout, QLabel *loader)
 {
     loader->show();
+    this->ensureDhuConfig();
 
     QString dhuPath = QDir::homePath() + "/Android/Sdk/extras/google/auto/desktop-head-unit";
+    QString dhuConfigPath = QFileInfo(QSettings().fileName()).dir().filePath("dhu.ini");
 
     this->dhuProcess = new QProcess(root);
-    this->dhuProcess->start(dhuPath, {"-u"}); // TODO: use -usb=DEVICE_ID or -adb=HOSTPORT ?
+    this->dhuProcess->start(dhuPath, {"-u", "--config=" + dhuConfigPath});
+    // TODO: use -usb=DEVICE_ID or -adb=HOSTPORT ?
     // TODO: add -c --config=FILE for the config file
     // TODO: use this->dhuProcess to run terminal commands --> `keycode media_play_pause` etc.
     // TODO: keycode day | shift-n -- keycode night | ctrl-n
@@ -234,6 +237,7 @@ void DHUPage::launchDHU(QWidget *root, QVBoxLayout *layout, QLabel *loader)
 
     QObject::connect(this->dhuProcess, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), [this](int code, QProcess::ExitStatus status) {
         qDebug() << "[DHU] process exited, code:" << code << "status:" << status;
+
         this->dhuProcess = nullptr;
         this->dhuContainerWidget = nullptr;
         this->arbiter.dhu().connected = false;
@@ -330,4 +334,25 @@ void DHUPage::fitDHUToAspectRatio()
     this->dhuContainerWidget->setFixedWidth(
         static_cast<int>(h * this->aspectRatio)
     );
+}
+
+void DHUPage::ensureDhuConfig()
+{
+    QSettings mainSettings;
+    QString dhuConfigPath = QFileInfo(mainSettings.fileName()).dir().filePath("dhu.ini");
+
+    QDir().mkpath(QFileInfo(dhuConfigPath).dir().absolutePath());
+
+    // Not using QSettings::IniFormat because it messes up the header
+    QFile file(dhuConfigPath);
+    if (!file.exists()) {
+        if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+            QTextStream out(&file);
+            out << "[general]\n";
+            out << "resolution = 800x480\n";
+            out << "dpi = 160\n";
+            out << "inputmode = default\n";
+            file.close();
+        }
+    }
 }

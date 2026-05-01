@@ -83,6 +83,7 @@ private:
     void launchDHU(QWidget *root, QVBoxLayout *layout, QLabel *loader);
     void killDHU();
     void fitDHUToAspectRatio();
+    void ensureDhuConfig();
 
     AAWorker *worker = nullptr;
     QProcess *dhuProcess = nullptr;
