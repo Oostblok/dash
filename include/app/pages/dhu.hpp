@@ -80,10 +80,29 @@ protected:
     void resizeEvent(QResizeEvent *event) override;
 
 private:
+    class Settings : public QWidget {
+    public:
+        Settings(QWidget *parent = nullptr);
+        void save();
+
+    private:
+        struct Config {
+            QString resolution;
+            int dpi;
+            QString inputMode;
+        };
+
+        QLayout *settings_widget();
+        QLayout *resolution_row_widget();
+        QLayout *dpi_row_widget();
+        QLayout *inputmode_row_widget();
+
+        Config config;
+    };
+
     void launchDHU(QWidget *root, QVBoxLayout *layout, QLabel *loader);
     void killDHU();
     void fitDHUToAspectRatio();
-    void ensureDhuConfig();
 
     AAWorker *worker = nullptr;
     QProcess *dhuProcess = nullptr;
@@ -93,4 +112,3 @@ private:
     double aspectRatio = 16.0 / 9.0;
 //     double aspectRatio = 5.0 / 3.0; // 800x480
 };
-

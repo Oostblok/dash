@@ -14,6 +14,11 @@
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 
+static QString dhuConfigPath()
+{
+    return QFileInfo(QSettings().fileName()).dir().filePath("dhu.ini");
+}
+
 static unsigned long getWindowPID(Display *display, Window w)
 {
     Atom atom = XInternAtom(display, "_NET_WM_PID", True);
@@ -167,25 +172,47 @@ void DHUPage::init()
     this->arbiter.dhu().page = this;
 
     QWidget *waiting = new QWidget(this);
+    waiting->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     QVBoxLayout *waitingLayout = new QVBoxLayout(waiting);
-    waitingLayout->setAlignment(Qt::AlignCenter);
+    waitingLayout->setContentsMargins(0, 0, 0, 0);
+    waitingLayout->setSpacing(0);
+
+    Dialog *dialog = new Dialog(this->arbiter, true, this->window());
+    Settings *settingsWidget = new Settings();
+    dialog->set_body(settingsWidget);
+    QPushButton *save_button = new QPushButton("save");
+    connect(save_button, &QPushButton::clicked, [settingsWidget]() {
+        settingsWidget->save();
+    });
+    dialog->set_button(save_button);
+
+    QPushButton *settings_button = new QPushButton(waiting);
+    settings_button->setFlat(true);
+    this->arbiter.forge().iconize("settings", settings_button, 24);
+    connect(settings_button, &QPushButton::clicked, [dialog]() { dialog->open(); });
+
+    QHBoxLayout *topBar = new QHBoxLayout();
+    topBar->setContentsMargins(4, 4, 4, 4);
+    topBar->addStretch();
+    topBar->addWidget(settings_button);
+    waitingLayout->addLayout(topBar);
 
     this->logo = new QSvgWidget(waiting);
     this->logo->load(this->loadSvg(this->arbiter.theme().mode));
 
-    waitingLayout->addWidget(logo, 0, Qt::AlignCenter);
-
+    waitingLayout->addStretch();
+    waitingLayout->addWidget(this->logo, 0, Qt::AlignCenter);
     waitingLayout->addSpacing(24);
 
     QLabel *connectLabel = new QLabel("Connect your phone to start Android Auto", waiting);
     connectLabel->setAlignment(Qt::AlignCenter);
     waitingLayout->addWidget(connectLabel, 0, Qt::AlignCenter);
+    waitingLayout->addStretch();
 
     this->addWidget(waiting);
 
     connect(&this->arbiter, &Arbiter::mode_changed, [this](Session::Theme::Mode mode) {
-        QString svgData = this->loadSvg(mode);
-        this->logo->load(svgData.toUtf8());
+        this->logo->load(this->loadSvg(mode));
     });
 
     QWidget *dhuContainer = new QWidget(this);
@@ -217,13 +244,11 @@ void DHUPage::init()
 void DHUPage::launchDHU(QWidget *root, QVBoxLayout *layout, QLabel *loader)
 {
     loader->show();
-    this->ensureDhuConfig();
 
     QString dhuPath = QDir::homePath() + "/Android/Sdk/extras/google/auto/desktop-head-unit";
-    QString dhuConfigPath = QFileInfo(QSettings().fileName()).dir().filePath("dhu.ini");
 
     this->dhuProcess = new QProcess(root);
-    this->dhuProcess->start(dhuPath, {"-u", "--config=" + dhuConfigPath});
+    this->dhuProcess->start(dhuPath, {"-u", "--config=" + dhuConfigPath()});
     // TODO: use -usb=DEVICE_ID or -adb=HOSTPORT ?
     // TODO: add -c --config=FILE for the config file
     // TODO: use this->dhuProcess to run terminal commands --> `keycode media_play_pause` etc.
@@ -336,23 +361,132 @@ void DHUPage::fitDHUToAspectRatio()
     );
 }
 
-void DHUPage::ensureDhuConfig()
+DHUPage::Settings::Settings(QWidget *parent)
+    : QWidget(parent)
 {
-    QSettings mainSettings;
-    QString dhuConfigPath = QFileInfo(mainSettings.fileName()).dir().filePath("dhu.ini");
-
-    QDir().mkpath(QFileInfo(dhuConfigPath).dir().absolutePath());
-
-    // Not using QSettings::IniFormat because it messes up the header
-    QFile file(dhuConfigPath);
+    QFile file(dhuConfigPath());
     if (!file.exists()) {
-        if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-            QTextStream out(&file);
-            out << "[general]\n";
-            out << "resolution = 800x480\n";
-            out << "dpi = 160\n";
-            out << "inputmode = default\n";
-            file.close();
-        }
+        this->config.resolution = "800x480";
+        this->config.dpi = 160;
+        this->config.inputMode = "default";
+        this->save();
+    } else {
+        QSettings cfg(dhuConfigPath(), QSettings::IniFormat);
+        this->config.resolution = cfg.value("general/resolution", "800x480").toString();
+        this->config.dpi = cfg.value("general/dpi", 160).toInt();
+        this->config.inputMode = cfg.value("general/inputmode", "default").toString();
     }
+
+    QVBoxLayout *layout = new QVBoxLayout(this);
+    layout->addLayout(this->settings_widget());
+}
+
+void DHUPage::Settings::save()
+{
+    QDir().mkpath(QFileInfo(dhuConfigPath()).dir().absolutePath());
+    QFile file(dhuConfigPath());
+    if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QTextStream out(&file);
+        out << "[general]\n";
+        out << "resolution = " << this->config.resolution << "\n";
+        out << "dpi = " << this->config.dpi << "\n";
+        out << "inputmode = " << this->config.inputMode << "\n";
+        file.close();
+    }
+}
+
+QLayout *DHUPage::Settings::settings_widget()
+{
+    QVBoxLayout *layout = new QVBoxLayout();
+    layout->addLayout(this->resolution_row_widget(), 1);
+    layout->addWidget(Session::Forge::br(), 1);
+    layout->addLayout(this->dpi_row_widget(), 1);
+    layout->addWidget(Session::Forge::br(), 1);
+    layout->addLayout(this->inputmode_row_widget(), 1);
+
+    return layout;
+}
+
+QLayout *DHUPage::Settings::resolution_row_widget()
+{
+    QHBoxLayout *layout = new QHBoxLayout();
+
+    QLabel *label = new QLabel("Resolution");
+    layout->addWidget(label, 1);
+
+    QGroupBox *group = new QGroupBox();
+    QVBoxLayout *group_layout = new QVBoxLayout(group);
+
+    QRadioButton *r480 = new QRadioButton("480p (800x480)", group);
+    r480->setChecked(this->config.resolution == "800x480");
+    group_layout->addWidget(r480);
+
+    QRadioButton *r720 = new QRadioButton("720p (1280x720)", group);
+    r720->setChecked(this->config.resolution == "1280x720");
+    group_layout->addWidget(r720);
+
+    QRadioButton *r1080 = new QRadioButton("1080p (1920x1080)", group);
+    r1080->setChecked(this->config.resolution == "1920x1080");
+    group_layout->addWidget(r1080);
+
+    connect(r480, &QRadioButton::clicked, [this]() { this->config.resolution = "800x480"; });
+    connect(r720, &QRadioButton::clicked, [this]() { this->config.resolution = "1280x720"; });
+    connect(r1080, &QRadioButton::clicked, [this]() { this->config.resolution = "1920x1080"; });
+
+    layout->addWidget(group, 1, Qt::AlignHCenter);
+
+    return layout;
+}
+
+QLayout *DHUPage::Settings::dpi_row_widget()
+{
+    QHBoxLayout *layout = new QHBoxLayout();
+
+    QLabel *label = new QLabel("DPI");
+    layout->addWidget(label, 1);
+
+
+    QHBoxLayout *inner = new QHBoxLayout();
+    QSlider *slider = new QSlider(Qt::Horizontal);
+    slider->setTracking(false);
+    slider->setRange(100, 320);
+    slider->setValue(this->config.dpi);
+
+    QLabel *value = new QLabel(QString::number(this->config.dpi));
+    connect(slider, &QSlider::valueChanged, [this, value](int v) {
+        value->setText(QString::number(v));
+        this->config.dpi = v;
+    });
+
+    inner->addStretch(2);
+    inner->addWidget(slider, 4);
+    inner->addWidget(value, 2);
+
+    layout->addLayout(inner, 1);
+
+    return layout;
+}
+
+QLayout *DHUPage::Settings::inputmode_row_widget()
+{
+    QHBoxLayout *layout = new QHBoxLayout();
+
+    QLabel *label = new QLabel("Input Mode");
+    layout->addWidget(label, 1);
+
+    QGroupBox *group = new QGroupBox();
+    QVBoxLayout *group_layout = new QVBoxLayout(group);
+
+    for (const QString mode : {"default", "touch", "rotary", "hybrid"}) {
+        QRadioButton *btn = new QRadioButton(mode, group);
+        btn->setChecked(this->config.inputMode == mode);
+        connect(btn, &QRadioButton::clicked, [this, mode]() {
+            this->config.inputMode = mode;
+        });
+        group_layout->addWidget(btn);
+    }
+
+    layout->addWidget(group, 1, Qt::AlignHCenter);
+
+    return layout;
 }
