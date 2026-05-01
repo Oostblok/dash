@@ -250,7 +250,6 @@ void DHUPage::launchDHU(QWidget *root, QVBoxLayout *layout, QLabel *loader)
     this->dhuProcess = new QProcess(root);
     this->dhuProcess->start(dhuPath, {"-u", "--config=" + dhuConfigPath()});
     // TODO: use -usb=DEVICE_ID or -adb=HOSTPORT ?
-    // TODO: add -c --config=FILE for the config file
     // TODO: use this->dhuProcess to run terminal commands --> `keycode media_play_pause` etc.
     // TODO: keycode day | shift-n -- keycode night | ctrl-n
     // TODO: focus video {on|off|toggle} on page active/inactive
