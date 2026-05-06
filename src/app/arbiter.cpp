@@ -228,22 +228,11 @@ void Arbiter::increase_volume(uint8_t val)
 
 void Arbiter::send_media_command(const QString& command)
 {
-    if (this->android_auto().connected) {
-        static const std::unordered_map<std::string, aasdk::proto::enums::ButtonCode::Enum> commandMap = {
-            {"previous_track", aasdk::proto::enums::ButtonCode::PREV},
-            {"next_track", aasdk::proto::enums::ButtonCode::NEXT},
-            {"toggle_play", aasdk::proto::enums::ButtonCode::TOGGLE_PLAY}
-        };
-
-        auto buttonCode = commandMap.find(command.toStdString());
-        if (buttonCode != commandMap.end()) {
-            this->android_auto().handler->injectButtonPressHelper(buttonCode->second, Action::ActionState::Triggered);
-        } else {
-            return;
-        }
+    if (this->dhu().connected) {
+        this->dhu().sendKey(command);
     } else {
-      // TODO: generic command?
-      qDebug() << "send_media_command: " << command;
+        // TODO: generic command?
+        qDebug() << "send_media_command: " << command;
     }
 }
 
@@ -260,7 +249,6 @@ void Arbiter::next_track()
 void Arbiter::toggle_play()
 {
     this->send_media_command("toggle_play");
-    // TODO: return play/pause state
 }
 
 void Arbiter::set_cursor(bool enabled)

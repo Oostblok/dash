@@ -75,6 +75,7 @@ class DHUPage : public QStackedWidget, public Page {
 public:
     DHUPage(Arbiter &arbiter);
     void init() override;
+    void sendKey(const QString &key);
 
 protected:
     void resizeEvent(QResizeEvent *event) override;

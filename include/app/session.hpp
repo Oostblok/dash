@@ -184,7 +184,6 @@ class Session {
         bool connected;
 
         DHU();
-        void setNightMode(bool night);
         void sendKey(const QString &key);
     };
 

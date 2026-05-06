@@ -226,6 +226,9 @@ void DHUPage::init()
 
     connect(&this->arbiter, &Arbiter::mode_changed, [this](Session::Theme::Mode mode) {
         this->logo->load(this->loadSvg(mode));
+
+        if (this->dhuProcess && this->dhuProcess->state() == QProcess::Running)
+            this->dhuProcess->write((mode == Session::Theme::Dark ? "night" : "day") + QString("\n").toUtf8());
     });
 
     QWidget *dhuContainer = new QWidget(this);
@@ -263,8 +266,6 @@ void DHUPage::launchDHU(QWidget *root, QVBoxLayout *layout, QLabel *loader, cons
     this->dhuProcess = new QProcess(root);
     this->dhuProcess->start(dhuPath, {"--usb=" + serial, "--config=" + dhuConfigPath()});
     // TODO: use -adb=HOSTPORT for wireless connection?
-    // TODO: use this->dhuProcess to run terminal commands --> `keycode media_play_pause` etc.
-    // TODO: keycode day | shift-n -- keycode night | ctrl-n
     // TODO: focus video {on|off|toggle} on page active/inactive
 
     if (!this->dhuProcess->waitForStarted(3000)) {
@@ -501,4 +502,10 @@ QLayout *DHUPage::Settings::inputmode_row_widget()
     layout->addWidget(group, 1, Qt::AlignHCenter);
 
     return layout;
+}
+
+void DHUPage::sendKey(const QString &key)
+{
+    if (this->dhuProcess && this->dhuProcess->state() == QProcess::Running)
+        this->dhuProcess->write(("keycode " + key + "\n").toUtf8());
 }

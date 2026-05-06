@@ -389,14 +389,20 @@ Session::DHU::DHU()
 {
 }
 
-void Session::DHU::setNightMode(bool night)
-{
-    qDebug() << "DHU night mode:" << night; // TODO: implement
-}
-
 void Session::DHU::sendKey(const QString &key)
 {
-    qDebug() << "DHU key:" << key; // TODO: implement
+    if (!this->page || !this->connected)
+        return;
+
+    static const std::unordered_map<std::string, QString> keyMap = {
+        {"previous_track", "media_prev"},
+        {"next_track", "media_next"},
+        {"toggle_play", "media_play_pause"}
+    };
+
+    auto it = keyMap.find(key.toStdString());
+    if (it != keyMap.end())
+        this->page->sendKey(it->second);
 }
 
 Session::Core::Core(QSettings &settings, Arbiter &arbiter)
