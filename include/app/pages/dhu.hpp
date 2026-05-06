@@ -54,6 +54,8 @@ public:
 private:
     void create_usb_workers();
     void create_io_service_workers();
+    void waitForUSBDevice();
+    void waitForWirelessDevice();
 
     std::function<void(bool, QString)> callback;
     libusb_context *usb_context = nullptr;
@@ -66,6 +68,7 @@ private:
     std::shared_ptr<aasdk::usb::USBHub> usb_hub;
     std::shared_ptr<aasdk::usb::ConnectedAccessoriesEnumerator> connected_accessories_enumerator;
     boost::asio::io_service::strand strand_;
+    boost::asio::ip::tcp::acceptor acceptor_;
     std::vector<std::thread> thread_pool;
 };
 

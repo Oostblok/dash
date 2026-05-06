@@ -22,10 +22,10 @@ OpenAutoWorker::OpenAutoWorker(std::function<void(bool)> callback, bool night_mo
       app(std::make_shared<openauto::App>(io_service, usb_wrapper, tcp_wrapper, android_auto_entity_factory, usb_hub,
                                           connected_accessories_enumerator))
 {
-    this->create_usb_workers();
-    this->create_io_service_workers();
+//     this->create_usb_workers();
+//     this->create_io_service_workers();
 
-    this->app->waitForDevice(true);
+//     this->app->waitForDevice(true);
     AAHandler *aa_handler = arbiter.android_auto().handler;
     service_factory.setAndroidAutoInterface(aa_handler);
     aa_handler->setServiceFactory(&service_factory);
@@ -419,8 +419,8 @@ void OpenAutoPage::init()
 
     this->frame = new OpenAutoFrame(this);
 
-    std::function<void(bool)> callback = [frame = this->frame](bool active) { frame->toggle(active); };
-    this->worker = new OpenAutoWorker(callback, this->arbiter.theme().mode == Session::Theme::Dark, frame, this->arbiter);
+//     std::function<void(bool)> callback = [frame = this->frame](bool active) { frame->toggle(active); };
+//     this->worker = new OpenAutoWorker(callback, this->arbiter.theme().mode == Session::Theme::Dark, frame, this->arbiter);
 
     connect(this->frame, &OpenAutoFrame::toggle, [this](bool enable){
         this->arbiter.android_auto().connected = enable;
@@ -449,7 +449,7 @@ void OpenAutoPage::resizeEvent(QResizeEvent *event)
 {
     QWidget::resizeEvent(event);
     this->frame->resize(this->size());
-    this->worker->update_size();
+//     this->worker->update_size();
 }
 
 QWidget *OpenAutoPage::connect_msg()

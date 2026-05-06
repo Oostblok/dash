@@ -96,6 +96,7 @@ AAWorker::AAWorker(std::function<void(bool, QString)> callback, QObject *parent)
     , usb_hub(std::make_shared<aasdk::usb::USBHub>(usb_wrapper, io_service, query_chain_factory))
     , connected_accessories_enumerator(std::make_shared<aasdk::usb::ConnectedAccessoriesEnumerator>(usb_wrapper, io_service, query_chain_factory))
     , strand_(io_service)
+    , acceptor_(io_service, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), 5000))
 {
     this->create_usb_workers();
     this->create_io_service_workers();
@@ -104,6 +105,7 @@ AAWorker::AAWorker(std::function<void(bool, QString)> callback, QObject *parent)
 
 AAWorker::~AAWorker()
 {
+    this->acceptor_.close();
     this->usb_hub->cancel();
     this->io_service.stop();
     std::for_each(this->thread_pool.begin(), this->thread_pool.end(), std::bind(&std::thread::join, std::placeholders::_1));
@@ -136,9 +138,17 @@ void AAWorker::create_io_service_workers()
 
 void AAWorker::waitForDevice()
 {
+    this->waitForUSBDevice();
+    this->waitForWirelessDevice();
+}
+
+void AAWorker::waitForUSBDevice()
+{
     auto promise = aasdk::usb::IUSBHub::Promise::defer(strand_);
     promise->then(
         [this](aasdk::usb::DeviceHandle deviceHandle) {
+            this->acceptor_.cancel();
+
             libusb_device *dev = libusb_get_device(deviceHandle.get());
             libusb_device_descriptor desc;
             libusb_get_device_descriptor(dev, &desc);
@@ -162,6 +172,21 @@ void AAWorker::waitForDevice()
         }
     );
     this->usb_hub->start(std::move(promise));
+}
+
+void AAWorker::waitForWirelessDevice()
+{
+    auto socket = std::make_shared<boost::asio::ip::tcp::socket>(io_service);
+    acceptor_.async_accept(*socket, [this, socket](const boost::system::error_code &ec) {
+        if (!ec) {
+            this->acceptor_.cancel();
+            QMetaObject::invokeMethod(this, [this]() {
+                this->callback(true, "wireless");
+            }, Qt::QueuedConnection);
+        } else if (ec != boost::asio::error::operation_aborted) {
+            this->waitForDevice();
+        }
+    });
 }
 
 DHUPage::DHUPage(Arbiter &arbiter)
@@ -281,11 +306,17 @@ void DHUPage::launchDHU(QWidget *root, QVBoxLayout *layout, QLabel *loader, cons
             this->aspectRatio = w / h;
     }
 
+    // TODO: add desktop-head-unit to the install script and update the path
     QString dhuPath = QDir::homePath() + "/Android/Sdk/extras/google/auto/desktop-head-unit";
 
     this->dhuProcess = new QProcess(root);
-    this->dhuProcess->start(dhuPath, {"--usb=" + serial, "--config=" + dhuConfigPath()});
-    // TODO: use -adb=HOSTPORT for wireless connection?
+    QStringList args;
+    if (serial == "wireless")
+        args << "--adb=5000";
+    else
+        args << "--usb=" + serial;
+    args << "--config=" + dhuConfigPath();
+    this->dhuProcess->start(dhuPath, args);
 
     if (!this->dhuProcess->waitForStarted(3000)) {
         qWarning() << "DHU failed to start";
