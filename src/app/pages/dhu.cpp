@@ -184,6 +184,15 @@ void DHUPage::init()
 {
     this->arbiter.dhu().page = this;
 
+    connect(&this->arbiter, &Arbiter::curr_page_changed, [this](Page *page) {
+        if (this->dhuProcess && this->dhuProcess->state() == QProcess::Running) {
+            if (page == this)
+                this->dhuProcess->write("focus video on\n");
+            else
+                this->dhuProcess->write("focus video off\n");
+        }
+    });
+
     QWidget *waiting = new QWidget(this);
     waiting->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     QVBoxLayout *waitingLayout = new QVBoxLayout(waiting);
@@ -277,7 +286,6 @@ void DHUPage::launchDHU(QWidget *root, QVBoxLayout *layout, QLabel *loader, cons
     this->dhuProcess = new QProcess(root);
     this->dhuProcess->start(dhuPath, {"--usb=" + serial, "--config=" + dhuConfigPath()});
     // TODO: use -adb=HOSTPORT for wireless connection?
-    // TODO: focus video {on|off|toggle} on page active/inactive
 
     if (!this->dhuProcess->waitForStarted(3000)) {
         qWarning() << "DHU failed to start";
