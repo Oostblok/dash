@@ -47,7 +47,7 @@ class AAWorker : public QObject {
     Q_OBJECT
 
 public:
-    AAWorker(std::function<void(bool)> callback, QObject *parent = nullptr);
+    AAWorker(std::function<void(bool, QString)> callback, QObject *parent = nullptr);
     ~AAWorker();
     void waitForDevice();
 
@@ -55,7 +55,7 @@ private:
     void create_usb_workers();
     void create_io_service_workers();
 
-    std::function<void(bool)> callback;
+    std::function<void(bool, QString)> callback;
     libusb_context *usb_context = nullptr;
     boost::asio::io_service io_service;
     boost::asio::io_service::work work;
@@ -100,7 +100,7 @@ private:
         Config config;
     };
 
-    void launchDHU(QWidget *root, QVBoxLayout *layout, QLabel *loader);
+    void launchDHU(QWidget *root, QVBoxLayout *layout, QLabel *loader, const QString &serial);
     void killDHU();
     void fitDHUToAspectRatio();
 

@@ -86,7 +86,7 @@ static Window findDHUWindow(Display *display, unsigned long targetPid)
     return findDHUWindowRecursive(display, targetPid, DefaultRootWindow(display));
 }
 
-AAWorker::AAWorker(std::function<void(bool)> callback, QObject *parent)
+AAWorker::AAWorker(std::function<void(bool, QString)> callback, QObject *parent)
     : QObject(parent)
     , callback(callback)
     , work(io_service)
@@ -138,9 +138,22 @@ void AAWorker::waitForDevice()
 {
     auto promise = aasdk::usb::IUSBHub::Promise::defer(strand_);
     promise->then(
-        [this](aasdk::usb::DeviceHandle) {
-            QMetaObject::invokeMethod(this, [this]() {
-                this->callback(true);
+        [this](aasdk::usb::DeviceHandle deviceHandle) {
+            libusb_device *dev = libusb_get_device(deviceHandle.get());
+            libusb_device_descriptor desc;
+            libusb_get_device_descriptor(dev, &desc);
+
+            QString serial;
+            libusb_device_handle *handle;
+            if (libusb_open(dev, &handle) == 0) {
+                unsigned char buf[256];
+                libusb_get_string_descriptor_ascii(handle, desc.iSerialNumber, buf, sizeof(buf));
+                serial = QString((char*)buf);
+                libusb_close(handle);
+            }
+
+            QMetaObject::invokeMethod(this, [this, serial]() {
+                this->callback(true, serial);
             }, Qt::QueuedConnection);
         },
         [this](const aasdk::error::Error& error) {
@@ -228,10 +241,10 @@ void DHUPage::init()
     this->addWidget(dhuContainer);
     this->setCurrentIndex(0);
 
-    std::function<void(bool)> callback = [this, dhuContainer, dhuLayout, loader](bool) {
+    std::function<void(bool, QString)> callback = [this, dhuContainer, dhuLayout, loader](bool, QString serial) {
         this->arbiter.dhu().connected = true;
         this->setCurrentIndex(1);
-        this->launchDHU(dhuContainer, dhuLayout, loader);
+        this->launchDHU(dhuContainer, dhuLayout, loader, serial);
 
         auto icon = this->button()->icon();
         icon.addFile(QString(":/icons/android_auto_color.svg"), QSize(), QIcon::Active, QIcon::On);
@@ -241,15 +254,15 @@ void DHUPage::init()
     this->worker = new AAWorker(callback, this);
 }
 
-void DHUPage::launchDHU(QWidget *root, QVBoxLayout *layout, QLabel *loader)
+void DHUPage::launchDHU(QWidget *root, QVBoxLayout *layout, QLabel *loader, const QString &serial)
 {
     loader->show();
 
     QString dhuPath = QDir::homePath() + "/Android/Sdk/extras/google/auto/desktop-head-unit";
 
     this->dhuProcess = new QProcess(root);
-    this->dhuProcess->start(dhuPath, {"-u", "--config=" + dhuConfigPath()});
-    // TODO: use -usb=DEVICE_ID or -adb=HOSTPORT ?
+    this->dhuProcess->start(dhuPath, {"--usb=" + serial, "--config=" + dhuConfigPath()});
+    // TODO: use -adb=HOSTPORT for wireless connection?
     // TODO: use this->dhuProcess to run terminal commands --> `keycode media_play_pause` etc.
     // TODO: keycode day | shift-n -- keycode night | ctrl-n
     // TODO: focus video {on|off|toggle} on page active/inactive
