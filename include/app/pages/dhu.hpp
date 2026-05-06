@@ -97,6 +97,7 @@ private:
         QLayout *resolution_row_widget();
         QLayout *dpi_row_widget();
         QLayout *inputmode_row_widget();
+        QLayout *fit_to_screen_row_widget();
 
         Config config;
     };
@@ -111,5 +112,4 @@ private:
     QSvgWidget *logo = nullptr;
     QByteArray loadSvg(Session::Theme::Mode mode);
     double aspectRatio = 16.0 / 9.0;
-//     double aspectRatio = 5.0 / 3.0; // 800x480
 };

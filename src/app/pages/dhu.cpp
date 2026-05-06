@@ -261,6 +261,17 @@ void DHUPage::launchDHU(QWidget *root, QVBoxLayout *layout, QLabel *loader, cons
 {
     loader->show();
 
+    QSettings cfg(dhuConfigPath(), QSettings::IniFormat);
+    QString resolution = cfg.value("resolution").toString();
+    QStringList parts = resolution.split("x");
+    if (parts.size() == 2) {
+        bool ok1, ok2;
+        double w = parts[0].toDouble(&ok1);
+        double h = parts[1].toDouble(&ok2);
+        if (ok1 && ok2 && h > 0)
+            this->aspectRatio = w / h;
+    }
+
     QString dhuPath = QDir::homePath() + "/Android/Sdk/extras/google/auto/desktop-head-unit";
 
     this->dhuProcess = new QProcess(root);
@@ -367,11 +378,14 @@ void DHUPage::fitDHUToAspectRatio()
     if (!this->dhuContainerWidget)
         return;
 
-    int h = this->height();
+    bool fitToScreen = QSettings().value("DHU/fitToScreen", false).toBool();
 
-    this->dhuContainerWidget->setFixedWidth(
-        static_cast<int>(h * this->aspectRatio)
-    );
+    if (fitToScreen) {
+        this->dhuContainerWidget->setFixedSize(this->width(), this->height());
+    } else {
+        int h = this->height();
+        this->dhuContainerWidget->setFixedWidth(static_cast<int>(h * this->aspectRatio));
+    }
 }
 
 DHUPage::Settings::Settings(QWidget *parent)
@@ -385,9 +399,9 @@ DHUPage::Settings::Settings(QWidget *parent)
         this->save();
     } else {
         QSettings cfg(dhuConfigPath(), QSettings::IniFormat);
-        this->config.resolution = cfg.value("general/resolution", "800x480").toString();
-        this->config.dpi = cfg.value("general/dpi", 160).toInt();
-        this->config.inputMode = cfg.value("general/inputmode", "default").toString();
+        this->config.resolution = cfg.value("resolution", "800x480").toString();
+        this->config.dpi = cfg.value("dpi", 160).toInt();
+        this->config.inputMode = cfg.value("inputmode", "default").toString();
     }
 
     QVBoxLayout *layout = new QVBoxLayout(this);
@@ -416,6 +430,8 @@ QLayout *DHUPage::Settings::settings_widget()
     layout->addLayout(this->dpi_row_widget(), 1);
     layout->addWidget(Session::Forge::br(), 1);
     layout->addLayout(this->inputmode_row_widget(), 1);
+    layout->addWidget(Session::Forge::br(), 1);
+    layout->addLayout(this->fit_to_screen_row_widget(), 1);
 
     return layout;
 }
@@ -500,6 +516,23 @@ QLayout *DHUPage::Settings::inputmode_row_widget()
     }
 
     layout->addWidget(group, 1, Qt::AlignHCenter);
+
+    return layout;
+}
+
+QLayout *DHUPage::Settings::fit_to_screen_row_widget()
+{
+    QHBoxLayout *layout = new QHBoxLayout();
+
+    QLabel *label = new QLabel("Fit to Screen");
+    layout->addWidget(label, 1);
+
+    Switch *toggle = new Switch();
+    toggle->setChecked(QSettings().value("DHU/fitToScreen", false).toBool());
+    connect(toggle, &Switch::stateChanged, [](bool state) {
+        QSettings().setValue("DHU/fitToScreen", state);
+    });
+    layout->addWidget(toggle, 1, Qt::AlignHCenter);
 
     return layout;
 }
