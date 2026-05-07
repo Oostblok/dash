@@ -306,8 +306,8 @@ void DHUPage::launchDHU(QWidget *root, QVBoxLayout *layout, QLabel *loader, cons
             this->aspectRatio = w / h;
     }
 
-    // TODO: add desktop-head-unit to the install script and update the path
-    QString dhuPath = QDir::homePath() + "/Android/Sdk/extras/google/auto/desktop-head-unit";
+    // dev path: QDir::homePath() + "/Android/Sdk/extras/google/auto/desktop-head-unit"
+    QString dhuPath = "/usr/local/lib/dhu/desktop-head-unit";
 
     this->dhuProcess = new QProcess(root);
     QStringList args;

@@ -6,6 +6,7 @@ gstreamerRepo="https://github.com/GStreamer/qt-gstreamer"
 openautoRepo="https://github.com/openDsh/openauto"
 h264bitstreamRepo="https://github.com/aizvorski/h264bitstream"
 pulseaudioRepo="https://gitlab.freedesktop.org/pulseaudio/pulseaudio.git"
+dhuRepo="https://github.com/google/android-auto.git"
 
 #Help text
 display_help() {
@@ -15,6 +16,7 @@ display_help() {
     echo "   --openauto       install and build openauto "
     echo "   --gstreamer      install and build gstreamer "
     echo "   --dash           install and build dash "
+    echo "   --dhu            install and build DHU (Desktop Head Unit) "
     echo "   --h264bitstream  install and build h264bitstream"
     echo "   --pulseaudio     install and build pulseaudio to fix raspberry pi bluetooth HFP"
     echo "   --bluez          install and build bluez to fix raspberry pi bluetooth outbound connection"
@@ -100,6 +102,8 @@ if [ $# -gt 0 ]; then
             --openauto )       openauto=true
                                     ;;
             --dash )           dash=true
+                                    ;;
+            --dhu )            dhu=true
                                     ;;
             --h264bitstream )  h264bitstream=true
                                     ;;
@@ -228,7 +232,7 @@ if [ $pulseaudio = false ]
   else
     #change to project root
     cd $script_path
-    
+
     echo Preparing to compile and install pulseaudio
     echo Grabbing pulseaudio deps
     sudo sed -i 's/#deb-src/deb-src/g' /etc/apt/sources.list
@@ -643,7 +647,7 @@ else
 
   echo Running Dash make
   make
-  
+
   if [[ $? -eq 0 ]]; then
       echo -e Dash make ok, executable can be found ../bin/dash
       echo
@@ -669,7 +673,7 @@ else
   fi
   cd $script_path
 
-  #Raspberry Pi addons 
+  #Raspberry Pi addons
   if $isRpi; then
     read -p "View select Raspberry Pi enhancements? (y/N) " choice
     if [[ $choice == "y" || $choice == "Y" ]]; then
@@ -699,5 +703,24 @@ else
   else
      echo "Exiting. Check autostart.sh and rpi.sh for more options"
      exit 0
+  fi
+fi
+
+###############################  DHU (Desktop Head Unit) #########################
+if [ $dhu = false ]; then
+  echo -e Skipping DHU '\n'
+else
+  echo Installing DHU
+
+  echo Copying DHU files to /usr/local/lib/dhu
+  sudo mkdir -p /usr/local/lib/dhu
+  sudo cp -r $script_path/extras/auto/* /usr/local/lib/dhu/
+  sudo chmod +x /usr/local/lib/dhu/desktop-head-unit
+
+  if [[ $? -eq 0 ]]; then
+    echo -e DHU installed ok'\n'
+  else
+    echo DHU install failed with error code $?
+    exit 1
   fi
 fi
