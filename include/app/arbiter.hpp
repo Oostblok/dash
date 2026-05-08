@@ -11,7 +11,6 @@
 #include "app/pages/page.hpp"
 #include "app/quick_views/quick_view.hpp"
 #include "app/widgets/fullscreen_toggler.hpp"
-#include "openauto/Service/InputService.hpp"
 
 class MainWindow;
 
@@ -57,7 +56,6 @@ class Arbiter : public QObject {
     Session::System &system() { return this->session_.system_; }
     Session::Forge &forge() { return this->session_.forge_; }
     Session::Core &core() { return this->session_.core_; }
-    Session::AndroidAuto &android_auto() { return this->session_.android_auto_; }
     Session::DHU &dhu() { return this->session_.dhu_; }
     void update() { this->session_.update(); }
 

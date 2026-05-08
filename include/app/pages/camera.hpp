@@ -31,6 +31,7 @@
 #include <QtQml/QQmlContext>
 #include <QtQuickWidgets/QQuickWidget>
 
+#include "app/widgets/switch.hpp"
 #include "app/config.hpp"
 #include "DashLog.hpp"
 

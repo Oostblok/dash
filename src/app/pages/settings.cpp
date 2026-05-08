@@ -8,10 +8,6 @@
 #include <aasdk_proto/VideoFPSEnum.pb.h>
 #include <aasdk_proto/VideoResolutionEnum.pb.h>
 
-#include "openauto/Configuration/AudioOutputBackendType.hpp"
-#include "openauto/Configuration/BluetootAdapterType.hpp"
-#include "openauto/Configuration/HandednessOfTrafficType.hpp"
-
 #include "app/action.hpp"
 #include "app/config.hpp"
 #include "app/session.hpp"

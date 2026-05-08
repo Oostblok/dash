@@ -22,6 +22,7 @@
 #include "openauto/Service/IAndroidAutoEntityFactory.hpp"
 #include "openauto/Service/IAndroidAutoEntity.hpp"
 
+#include "app/widgets/switch.hpp"
 #include "app/pages/page.hpp"
 #include "app/session.hpp"
 

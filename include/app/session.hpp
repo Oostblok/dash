@@ -19,14 +19,12 @@
 #include <QWidget>
 
 #include "app/action.hpp"
-#include "app/pages/openauto.hpp"
 #include "app/pages/page.hpp"
 #include "app/quick_views/quick_view.hpp"
 #include "app/services/bluetooth.hpp"
 #include "app/services/clock.hpp"
 #include "app/services/server.hpp"
 #include "app/widgets/fullscreen_toggler.hpp"
-#include "AAHandler.hpp"
 
 class Arbiter;
 
@@ -96,7 +94,6 @@ class Session {
         bool status_bar;
         Fullscreen fullscreen;
         ControlBar control_bar;
-        OpenAutoPage *openauto_page;
         Page *curr_page;
 
         Layout(QSettings &settings, Arbiter &arbiter);
@@ -172,13 +169,6 @@ class Session {
         Arbiter &arbiter_;
     };
 
-    struct AndroidAuto {
-        AAHandler *handler;
-        bool connected;
-
-        AndroidAuto(Arbiter &arbiter);
-    };
-
     struct DHU {
         DHUPage *page;
         bool connected;
@@ -217,7 +207,6 @@ class Session {
     Layout layout_;
     System system_;
     Forge forge_;
-    AndroidAuto android_auto_;
     DHU dhu_;
     Core core_;
 };

@@ -12,7 +12,6 @@
 #include <QStackedWidget>
 
 #include "app/config.hpp"
-#include "app/pages/openauto.hpp"
 #include "app/pages/page.hpp"
 
 #include "app/arbiter.hpp"

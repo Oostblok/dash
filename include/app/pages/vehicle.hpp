@@ -10,6 +10,7 @@
 #include "obd/command.hpp"
 #include "app/widgets/selector.hpp"
 #include "app/widgets/dialog.hpp"
+#include "app/widgets/switch.hpp"
 
 #include "app/pages/page.hpp"
 

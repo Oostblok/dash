@@ -5,8 +5,6 @@
 
 Config::Config()
     : QObject(qApp),
-      openauto_config(std::make_shared<openauto::configuration::Configuration>()),
-      openauto_button_codes(openauto_config->getButtonCodes()),
       settings()
 {
     this->radio_station = this->settings.value("Pages/Media/Radio/station", 98.0).toDouble();
@@ -29,7 +27,6 @@ Config::Config()
     this->cam_overlay = this->settings.value("Pages/Camera/Overlay/enabled", false).toBool();
     this->cam_overlay_width = this->settings.value("Pages/Camera/Overlay/width", 100).toInt();
     this->cam_overlay_height = this->settings.value("Pages/Camera/Overlay/height", 100).toInt();
-    this->show_aa_connected = this->settings.value("Pages/OpenAuto/show_aa_connected", 100).toBool();
     this->settings.beginGroup("Pages/Launcher");
     for (auto key : this->settings.childKeys())
         this->launcher_plugins.append(this->settings.value(key, QString()).toString());

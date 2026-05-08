@@ -1,6 +1,12 @@
 #include <QApplication>
 #include <QStringList>
 #include <QWindow>
+#include <QScreen>
+#include <QSplashScreen>
+#include <QBitmap>
+#include <QSettings>
+
+#include "DashLog.hpp"
 
 #include "app/window.hpp"
 #include "app/action.hpp"

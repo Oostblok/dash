@@ -3,7 +3,6 @@
 #repo addresses
 aasdkRepo="https://github.com/OpenDsh/aasdk"
 gstreamerRepo="https://github.com/GStreamer/qt-gstreamer"
-openautoRepo="https://github.com/openDsh/openauto"
 h264bitstreamRepo="https://github.com/aizvorski/h264bitstream"
 pulseaudioRepo="https://gitlab.freedesktop.org/pulseaudio/pulseaudio.git"
 dhuRepo="https://github.com/google/android-auto.git"
@@ -13,7 +12,6 @@ display_help() {
     echo
     echo "   --deps           install all dependencies"
     echo "   --aasdk          install and build aasdk"
-    echo "   --openauto       install and build openauto "
     echo "   --gstreamer      install and build gstreamer "
     echo "   --dash           install and build dash "
     echo "   --dhu            install and build DHU (Desktop Head Unit) "
@@ -84,7 +82,6 @@ if [ $# -gt 0 ]; then
   deps=false
   aasdk=false
   gstreamer=false
-  openauto=false
   dash=false
   h264bitstream=false
   pulseaudio=false
@@ -98,8 +95,6 @@ if [ $# -gt 0 ]; then
             --aasdk )           aasdk=true
                                     ;;
             --gstreamer )       gstreamer=true
-                                    ;;
-            --openauto )       openauto=true
                                     ;;
             --dash )           dash=true
                                     ;;
@@ -128,7 +123,6 @@ else
     deps=true
     aasdk=true
     gstreamer=true
-    openauto=true
     dash=true
     h264bitstream=true
     pulseaudio=false
@@ -541,79 +535,24 @@ else
 	echo -e Skipping Gstreamer'\n'
 fi
 
-
-
-###############################  openauto  #########################
-if [ $openauto = false ]; then
-  echo -e skipping openauto'\n'
+###############################  DHU (Desktop Head Unit) #########################
+if [ $dhu = false ]; then
+  echo -e Skipping DHU '\n'
 else
-  echo Installing openauto
+  echo Installing DHU
 
-  #change to project root
-  cd $script_path
-
-  #clone openauto
-  echo -e cloning openauto'\n'
-  git clone $openautoRepo
-  if [[ $? -eq 0 ]]; then
-    echo -e cloned OK'\n'
-  else
-    cd openauto
-    if [[ $? -eq 0 ]]; then
-      git pull $openautoRepo
-      echo -e Openauto cloned OK'\n'
-      cd ..
-    else
-      echo Openauto clone/pull error
-      exit 1
-    fi
-  fi
-
-  cd openauto
-
-  #create build directory
-  echo Creating openauto build directory
-  mkdir build
+  echo Copying DHU files to /usr/local/lib/dhu
+  sudo mkdir -p /usr/local/lib/dhu
+  sudo cp -r $script_path/extras/auto/* /usr/local/lib/dhu/
+  sudo chmod +x /usr/local/lib/dhu/desktop-head-unit
 
   if [[ $? -eq 0 ]]; then
-    echo -e openauto build directory made
+    echo -e DHU installed ok'\n'
   else
-    echo Unable to create openauto build directory assuming it exists...
-  fi
-
-  cd build
-
-  echo Beginning openauto cmake
-  cmake ${installArgs} -DGST_BUILD=true ../
-  if [[ $? -eq 0 ]]; then
-    echo -e Openauto CMake OK'\n'
-  else
-    echo Openauto CMake failed with error code $?
+    echo DHU install failed with error code $?
     exit 1
   fi
-
-  echo Beginning openauto make
-  make
-
-  if [[ $? -eq 0 ]]; then
-    echo -e Openauto make OK'\n'
-  else
-    echo Openauto make failed with error code $?
-    exit 1
-  fi
-
-  #run make install
-  echo Beginning make install
-  sudo make install
-  if [[ $? -eq 0 ]]; then
-    echo -e Openauto installed ok'\n'
-  else
-    echo Openauto make install failed with error code $?
-    exit 1
-  fi
-  cd $script_path
 fi
-
 
 ###############################  dash  #########################
 if [ $dash = false ]; then
@@ -652,7 +591,7 @@ else
       echo -e Dash make ok, executable can be found ../bin/dash
       echo
 
-      #check and add usb rules for openauto if they dont exist
+      #check and add usb rules for dhu if they dont exist
       echo Checking if permissions exist
       #udev rule to be created below, change as needed
       FILE=/etc/udev/rules.d/51-dashusb.rules
@@ -703,24 +642,5 @@ else
   else
      echo "Exiting. Check autostart.sh and rpi.sh for more options"
      exit 0
-  fi
-fi
-
-###############################  DHU (Desktop Head Unit) #########################
-if [ $dhu = false ]; then
-  echo -e Skipping DHU '\n'
-else
-  echo Installing DHU
-
-  echo Copying DHU files to /usr/local/lib/dhu
-  sudo mkdir -p /usr/local/lib/dhu
-  sudo cp -r $script_path/extras/auto/* /usr/local/lib/dhu/
-  sudo chmod +x /usr/local/lib/dhu/desktop-head-unit
-
-  if [[ $? -eq 0 ]]; then
-    echo -e DHU installed ok'\n'
-  else
-    echo DHU install failed with error code $?
-    exit 1
   fi
 fi

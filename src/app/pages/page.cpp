@@ -1,4 +1,5 @@
 #include <QHBoxLayout>
+#include <QStackedLayout>
 
 #include "app/arbiter.hpp"
 
